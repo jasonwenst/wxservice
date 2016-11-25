@@ -29,9 +29,6 @@ public class MsgHandler extends AbstractHandler {
 	
 	private Logger logger = LoggerFactory.getLogger(MsgHandler.class);
 	
-	@Autowired
-	private EmployeeRepositroy repository;
-	
     @Override
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
     	logger.info("msgHandler processed");
