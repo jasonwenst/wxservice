@@ -36,6 +36,11 @@ public class MainController {
 	public String index() {
 		return "index";
 	}
+	
+	@RequestMapping(value = "payment")
+	public String payment() {
+		return "payment";
+	}
 
 	@RequestMapping(value = "webchatServlet")
 	public void wechatServlet(HttpServletRequest request, HttpServletResponse response)
