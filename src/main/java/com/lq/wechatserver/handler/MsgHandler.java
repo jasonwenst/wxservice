@@ -1,16 +1,10 @@
 package com.lq.wechatserver.handler;
 
-import java.math.BigDecimal;
-import java.util.Date;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.lq.wechatserver.entity.EmployeeEntity;
-import com.lq.wechatserver.repository.EmployeeRepositroy;
 
 import me.chanjar.weixin.common.exception.WxErrorException;
 import me.chanjar.weixin.common.session.WxSessionManager;

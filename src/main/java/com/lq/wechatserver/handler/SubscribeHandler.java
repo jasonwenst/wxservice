@@ -1,10 +1,14 @@
 package com.lq.wechatserver.handler;
 
+import java.sql.Timestamp;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.lq.wechatserver.entity.UserEntity;
+import com.lq.wechatserver.repository.UserRepository;
 import com.lq.wechatserver.service.CoreService;
 
 import me.chanjar.weixin.common.exception.WxErrorException;
@@ -31,21 +35,37 @@ public class SubscribeHandler extends AbstractHandler {
     protected WxMpService wxMpService;
     @Autowired
     protected CoreService coreService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
 
     @Override
     public WxMpXmlOutMessage handle(WxMpXmlMessage wxMessage, Map<String, Object> context, WxMpService wxMpService, WxSessionManager sessionManager) throws WxErrorException {
         WxMpUser wxMpUser = coreService.getUserInfo(wxMessage.getFromUser(), "zh_CN");
-        /*List<NameValuePair> params = new ArrayList<>();
-        params.add(new BasicNameValuePair("openId", wxMpUser.getOpenId()));
-        params.add(new BasicNameValuePair("nickname", wxMpUser.getNickname()));
-        params.add(new BasicNameValuePair("headImgUrl", wxMpUser.getHeadImgUrl()));*/
+        
+        UserEntity user = null;
+        if(StringUtils.isNotEmpty(wxMessage.getEventKey())) {
+        	int userId = Integer.valueOf(wxMessage.getEventKey().substring(8));
+        	user = userRepository.findOne(userId);
+        }
+        
+        
+        UserEntity entity = new UserEntity();
+        entity.setIsPaied("N");    // 默认未支付
+        entity.setIsSubscribed("Y"); // 默认订阅
+        entity.setJoinedDate(new Timestamp(wxMpUser.getSubscribeTime()*1000L));
+        entity.setNickName(wxMpUser.getNickname());
+        entity.setOpenId(wxMpUser.getOpenId());
+        entity.setUser(user);
+        
+        // 保存用户
+        userRepository.save(entity);
 
-        //TODO(user) 在这里可以进行用户关注时对业务系统的相关操作（比如新增用户）
         logger.info("unionId  = {}", wxMpUser.getUnionId());
         WxMpXmlOutTextMessage m
             = WxMpXmlOutMessage.TEXT()
-            .content("傻逼" + wxMpUser.getNickname() + "，你还好吗！")
+            .content("亲爱的" + wxMpUser.getNickname() + "你好！")
             .fromUser(wxMessage.getToUser())
             .toUser(wxMessage.getFromUser())
             .build();

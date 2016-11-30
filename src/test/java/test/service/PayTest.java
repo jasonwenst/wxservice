@@ -1,5 +1,6 @@
 package test.service;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -14,6 +15,7 @@ public class PayTest {
 	
 	
 	@Test
+	@Ignore
 	public void test() {
 		
 		WxPayUnifiedOrderRequest request = new WxPayUnifiedOrderRequest();
