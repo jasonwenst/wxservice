@@ -95,7 +95,6 @@ public class MainController {
 		}
 
 		response.getWriter().println("不可识别的加密类型");
-		return;
 	}
 
 }

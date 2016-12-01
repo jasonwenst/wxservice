@@ -18,6 +18,7 @@ import me.chanjar.weixin.mp.api.WxMpConfigStorage;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.bean.pay.request.WxPayUnifiedOrderRequest;
 import me.chanjar.weixin.mp.bean.pay.result.WxPayUnifiedOrderResult;
+import me.chanjar.weixin.mp.bean.result.WxMpOAuth2AccessToken;
 
 @Controller
 @RequestMapping("payment")
@@ -38,10 +39,21 @@ public class PayController {
 		
 		logger.info("prepay processed, request = {}", request.toString());
 		
+		// appId、mchId、nonceStr、sign 在unifiedOrder中自动获取
+		
+		WxMpOAuth2AccessToken token = wxMpService.oauth2getAccessToken(request.getAttach()); // 把code放到attach里获得openId
+		
+//		WxMpOAuth2AccessToken token = new WxMpOAuth2AccessToken();
+//		token.setOpenId("dddddd");
+		
+		request.setDeviceInfo("WEB");  					// 终端设备号(门店号或收银设备ID)，注意：PC网页或公众号内支付请传"WEB"
+		
 		WxPayUnifiedOrderResult result = new WxPayUnifiedOrderResult();
 		
-		request.setAppid(configStorage.getAppId());
-		request.setOpenid("");
+		request.setOpenid(token.getOpenId());
+		request.setOutTradeNo(""); // 商户订单号
+		request.setSpbillCreateIp(request.getSpbillCreateIp());  // ip
+		
 		
 		result = wxMpService.getPayService().unifiedOrder(request);
 		

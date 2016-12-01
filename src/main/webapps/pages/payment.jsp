@@ -4,6 +4,8 @@
     String path = request.getContextPath();  
     String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";  
     long t = System.currentTimeMillis();  
+    String code = request.getParameter("code");
+    String code = "123";
 %>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -24,7 +26,7 @@
 				<label class="weui_label">金额</label>
 			</div>
 			<div class="weui_cell_bd weui_cell_primary">
-				<input class="weui_input" type="number" placeholder="请输入金额">
+				<input id = "fee" class="weui_input" type="number" placeholder="请输入金额">
 			</div>
 		</div>
 		<div class="weui_btn_area">
@@ -36,8 +38,7 @@
 
 	<script src="js/jquery.min.js"></script>
 	<script src="js/jquery-weui.min.js"></script>
-	<script type="text/javascript"
-		src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+	<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
 
 	<script type="text/javascript">
 	
@@ -45,10 +46,6 @@
 	        //按钮单击时执行
 	        $("#btnPrepay").click(function(){
 	              
-	        	var jsonObject = {
-	        			name : "json"
-	        	}
-	        	
 	              //Ajax调用处理
 	            $.ajax({
 	               type: "POST",
@@ -64,6 +61,8 @@
 	    });	
 	
 		function getJsonData() {
+			var fee = $("#fee").val();
+			var code = <%=code%>;
 			var json = {
 					"appId" : "",
 					"mchId" : "",
@@ -71,12 +70,13 @@
 					"nonceStr" : "",
 					"sign" : "",
 					"body" : "充值中心-会员充值",
-					"totalFee" : 100,
+					"totalFee" : fee,
 					"outTradeNo" : "34123452345",
-					"spbillCreateIp" : "123.56.233.132",
+					"spbillCreateIp" : "127.0.0.1",
 					"notifyURL" : "https://123.56.233.132/wechatserver/payment",
 					"detail" : "vip",
-					"tradeType" : "JSAPI"
+					"tradeType" : "JSAPI",
+					"attach" : code
 			}
 			
 			return json;
