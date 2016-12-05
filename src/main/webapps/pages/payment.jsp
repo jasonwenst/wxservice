@@ -5,7 +5,6 @@
     String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";  
     long t = System.currentTimeMillis();  
     String code = request.getParameter("code");
-    String code = "123";
 %>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -13,8 +12,8 @@
 	content="width=device-width, initial-scale=1, user-scalable=no">
 <title>Insert title here</title>
 
-<link rel="stylesheet" href="css/weui.min.css">
-<link rel="stylesheet" href="css/jquery-weui.min.css">
+<link rel="stylesheet" href="<%=basePath %>css/weui.min.css">
+<link rel="stylesheet" href="<%=basePath %>css/jquery-weui.min.css">
 
 
 </head>
@@ -23,7 +22,7 @@
 	<div class="weui_cells weui_cells_form">
 		<div class="weui_cell">
 			<div class="weui_cell_hd">
-				<label class="weui_label">金额</label>
+				<label class="weui_label">金额
 			</div>
 			<div class="weui_cell_bd weui_cell_primary">
 				<input id = "fee" class="weui_input" type="number" placeholder="请输入金额">
@@ -31,13 +30,13 @@
 		</div>
 		<div class="weui_btn_area">
 			<a href="javascript:;" class="weui_btn weui_btn_primary"
-				id="btnPrepay">确定</a>
+				id="btnPrepay">确定<%=code %></a>
 		</div>
 	</div>
 
 
-	<script src="js/jquery.min.js"></script>
-	<script src="js/jquery-weui.min.js"></script>
+	<script src="<%=basePath %>js/jquery.min.js"></script>
+	<script src="<%=basePath %>js/jquery-weui.min.js"></script>
 	<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
 
 	<script type="text/javascript">
@@ -49,12 +48,14 @@
 	              //Ajax调用处理
 	            $.ajax({
 	               type: "POST",
-	               url: "<%=basePath%>/payment/prepay",
+	               url: "<%=basePath%>/payment/getJSSDKPayInfo",
 	               data: JSON.stringify(getJsonData()),
 	               contentType : 'application/json',
 	               success: function(data){
-	                        
-	                  }
+	            	   if(data != null) {
+	            		   onBridgeReady(data);
+	            	   }
+                   }
 	            });
 	            
 	         });
@@ -62,7 +63,7 @@
 	
 		function getJsonData() {
 			var fee = $("#fee").val();
-			var code = <%=code%>;
+			var code = "<%=code%>";
 			var json = {
 					"appId" : "",
 					"mchId" : "",
@@ -82,11 +83,33 @@
 			return json;
 		}
 		
-		function pay() {
-			
-			
-			window.location.href= url + "&showwxpaytitle=1";   
-		}
+		function onBridgeReady(data){
+			   WeixinJSBridge.invoke(
+			       'getBrandWCPayRequest', {
+			           "appId" : data.appId,     //公众号名称，由商户传入     
+			           "timeStamp" : data.timeStamp,         //时间戳，自1970年以来的秒数     
+			           "nonceStr" : data.nonceStr, //随机串     
+			           "package" : data.package,     
+			           "signType" : data.signType,         //微信签名方式：     
+			           "paySign" : data.paySign //微信签名 
+			       },
+			       function(res){
+			           if(res.err_msg == "get_brand_wcpay_request：ok" ) {}     // 使用以上方式判断前端返回,微信团队郑重提示：res.err_msg将在用户支付成功后返回    ok，但并不保证它绝对可靠。 
+			       }
+			   ); 
+			}
+			if (typeof WeixinJSBridge == "undefined"){
+			   if( document.addEventListener ){
+			       document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+			   }else if (document.attachEvent){
+			       document.attachEvent('WeixinJSBridgeReady', onBridgeReady); 
+			       document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+			   }
+			}else{
+			   onBridgeReady();
+			}
+		
+		
 	</script>
 </body>
 </html>
