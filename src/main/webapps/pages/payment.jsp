@@ -30,7 +30,7 @@
 		</div>
 		<div class="weui_btn_area">
 			<a href="javascript:;" class="weui_btn weui_btn_primary"
-				id="btnPrepay">确定<%=code %></a>
+				id="btnPrepay" onclick="savePayInfo(getPayInfo())">确定</a>
 		</div>
 	</div>
 
@@ -41,25 +41,25 @@
 
 	<script type="text/javascript">
 	
-		$(function(){
-	        //按钮单击时执行
-	        $("#btnPrepay").click(function(){
+// 		$(function(){
+// 	        //按钮单击时执行
+// 	        $("#btnPrepay").click(function(){
 	              
-	              //Ajax调用处理
-	            $.ajax({
-	               type: "POST",
-	               url: "<%=basePath%>/payment/getJSSDKPayInfo",
-	               data: JSON.stringify(getJsonData()),
-	               contentType : 'application/json',
-	               success: function(data){
-	            	   if(data != null) {
-	            		   onBridgeReady(data);
-	            	   }
-                   }
-	            });
+// 	              //Ajax调用处理
+// 	            $.ajax({
+// 	               type: "POST",
+<%-- 	               url: "<%=basePath%>/payment/getJSSDKPayInfo", --%>
+// 	               data: JSON.stringify(getJsonData()),
+// 	               contentType : 'application/json',
+// 	               success: function(data){
+// 	            	   if(data != null) {
+// 	            		   onBridgeReady(data);
+// 	            	   }
+//                    }
+// 	            });
 	            
-	         });
-	    });	
+// 	         });
+// 	    });	
 	
 		function getJsonData() {
 			var fee = $("#fee").val();
@@ -83,6 +83,20 @@
 			return json;
 		}
 		
+		function getPayInfo() {
+			
+			var json = {
+					"appId" : "appIdfasda1",
+					"openId" : "sregsfgfdgs1",
+					"createTimestamp" : 253452342,
+					"outTradeNo" : "fdasfad1",
+					"totalFee" : 2300
+			}
+			
+			return JSON.stringify(json);
+			
+		}
+		
 		function onBridgeReady(data){
 			   WeixinJSBridge.invoke(
 			       'getBrandWCPayRequest', {
@@ -94,7 +108,9 @@
 			           "paySign" : data.paySign //微信签名 
 			       },
 			       function(res){
-			           if(res.err_msg == "get_brand_wcpay_request：ok" ) {}     // 使用以上方式判断前端返回,微信团队郑重提示：res.err_msg将在用户支付成功后返回    ok，但并不保证它绝对可靠。 
+			           if(res.err_msg == "get_brand_wcpay_request：ok" ) {
+			        	   savePayInfo(data);
+			           }     // 使用以上方式判断前端返回,微信团队郑重提示：res.err_msg将在用户支付成功后返回    ok，但并不保证它绝对可靠。 
 			       }
 			   ); 
 			}
@@ -108,6 +124,18 @@
 			}else{
 			   onBridgeReady();
 			}
+			
+			
+		function savePayInfo(data) {
+			 $.ajax({
+	               type: "POST",
+	               url: "<%=basePath%>/payment/savePayInfo",
+	               data: data,
+	               contentType : 'application/json',
+	               success: function(res){
+                 }
+	            });
+		}
 		
 		
 	</script>

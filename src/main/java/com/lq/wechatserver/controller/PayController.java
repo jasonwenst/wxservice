@@ -1,5 +1,6 @@
 package com.lq.wechatserver.controller;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.gson.JsonObject;
+import com.lq.wechatserver.entity.PayInfoEntity;
+import com.lq.wechatserver.repository.PayInfoRepository;
 import com.lq.wechatserver.service.CoreService;
 
 import me.chanjar.weixin.common.exception.WxErrorException;
@@ -37,6 +40,8 @@ public class PayController {
 	private WxMpService wxMpService;
 	@Autowired
 	protected CoreService coreService;
+	@Autowired
+	private PayInfoRepository payInfoRepository;
 	
 	@RequestMapping(value = "success", method = RequestMethod.GET)
 	public String paySuccessed() {
@@ -94,9 +99,13 @@ public class PayController {
 //		// TODO(user) 填写通知回调地址
 //		prepayInfo.setNotifyURL("/payment/success?fee="+Integer.valueOf(request.getTotalFee())/100);
 
+		Map<String, String> payInfo = new HashMap<String, String>();
+		payInfo.put("outTradeNo", request.getOutTradeNo());
+		payInfo.put("totalFee", String.valueOf(request.getTotalFee()));
+		
+		
 //		Map<String, String> payInfo = this.wxMpService.getPayService().getPayInfo(prepayInfo);
 		
-		Map<String, String> payInfo = new HashMap<String, String>();
 		payInfo.put("appId", wxMpService.getWxMpConfigStorage().getAppId());
 		payInfo.put("timeStamp", String.valueOf(System.currentTimeMillis() / 1000));
 		payInfo.put("nonceStr", System.currentTimeMillis() + "");
@@ -105,16 +114,15 @@ public class PayController {
 		payInfo.put("codeUrl", "12314");
 		payInfo.put("paySign", "12314sdfgnh");
 		
-		
-//		jsonObject.addProperty("appId", payInfo.get("appId"));
-//		jsonObject.addProperty("timeStamp", payInfo.get("timeStamp"));
-//		jsonObject.addProperty("nonceStr", payInfo.get("nonceStr"));
-//		jsonObject.addProperty("package", payInfo.get("package"));
-//		jsonObject.addProperty("signType", payInfo.get("signType"));
-//		jsonObject.addProperty("codeUrl", payInfo.get("codeUrl"));
-//		jsonObject.addProperty("paySign", payInfo.get("paySign"));
-		
 		return new ResponseEntity<Map<String, String>>(payInfo, HttpStatus.OK);
+	}
+	
+	
+	@RequestMapping(value = "savePayInfo", method = RequestMethod.POST)
+	public void savePayInfo(@RequestBody PayInfoEntity entity) {
+		entity.setCreateTime(new Timestamp(entity.getCreateTimestamp()));
+		payInfoRepository.save(entity);
+		
 	}
 
 }
