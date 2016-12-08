@@ -1,5 +1,6 @@
 package com.lq.wechatserver.entity;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -10,7 +11,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "Employee")
-public class EmployeeEntity {
+public class EmployeeEntity implements Serializable {
 
 	@Id
 	@Column(name = "id")

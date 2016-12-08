@@ -20,7 +20,7 @@ import org.springframework.web.servlet.view.JstlView;
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackages = "com.lq.wechatserver")
-@Import(JpaConfiguration.class)
+@Import(value = {JpaConfiguration.class, MessagingListnerConfiguration.class, MessagingConfiguration.class})
 @EnableCaching
 @EnableAspectJAutoProxy
 public class AppConfig  extends WebMvcConfigurerAdapter{
