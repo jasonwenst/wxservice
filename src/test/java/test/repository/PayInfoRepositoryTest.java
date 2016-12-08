@@ -1,13 +1,11 @@
 package test.repository;
 
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.lq.wechatserver.entity.PayInfoEntity;
 import com.lq.wechatserver.entity.PayInfoErrEntity;
 import com.lq.wechatserver.entity.SysConfigEntity;
 import com.lq.wechatserver.repository.PayInfoErrRepository;
@@ -47,9 +45,9 @@ public class PayInfoRepositoryTest  extends BaseJUnit4Test {
 		
 		SysConfigEntity entity = new SysConfigEntity();
 		
-		entity.setCode("appId1");
-		entity.setValue("fasdfasdgsdf");
-		entity.setDesc("编号");
+		entity.setCode("wx.partenerId");
+		entity.setValue("avdfhghjmgjgh");
+		entity.setDesc("微信支付商户号");
 		
 		sysConfigRepository.save(entity);
 	}

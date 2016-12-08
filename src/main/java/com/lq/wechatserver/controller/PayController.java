@@ -1,7 +1,6 @@
 package com.lq.wechatserver.controller;
 
 import java.io.File;
-import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,10 +14,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.gson.JsonObject;
+import com.lq.wechatserver.configuration.WxConfig;
 import com.lq.wechatserver.entity.PayInfoEntity;
 import com.lq.wechatserver.entity.PayInfoErrEntity;
 import com.lq.wechatserver.messaging.MessageSender;
@@ -54,10 +52,17 @@ public class PayController {
 	private MessageSender messageSender;
 	@Autowired
 	private PayInfoErrRepository payInfoErrRepository;
+	@Autowired
+	private WxConfig wxConfig;
 
 	@RequestMapping(value = "success", method = RequestMethod.GET)
 	public String paySuccessed() {
 		return "success";
+	}
+	
+	@RequestMapping(value = "queryReadpack", method = RequestMethod.GET)
+	public String queryReadpack() {
+		return "queryReadpack";
 	}
 
 	@ResponseBody
@@ -157,9 +162,12 @@ public class PayController {
 	private WxPaySendRedpackResult dosendRedpack(PayInfoEntity entity) {
 
 		// 检查是否有支付订单
-		WxPayOrderQueryResult result;
+		WxPayOrderQueryResult result = new WxPayOrderQueryResult();
 		try {
-			result = wxMpService.getPayService().queryOrder("", entity.getOutTradeNo());
+//			result = wxMpService.getPayService().queryOrder("", entity.getOutTradeNo());
+			result.setReturnCode("SUCCESS");
+			result.setOutTradeNo(entity.getOutTradeNo());
+			result.setTotalFee(entity.getTotalFee());
 
 			if ("SUCCESS".equalsIgnoreCase(result.getReturnCode()) && result.getTotalFee() == entity.getTotalFee()
 					&& result.getOutTradeNo().equals(entity.getOutTradeNo())) {
@@ -173,24 +181,28 @@ public class PayController {
 				request.setTotalNum(1);
 				request.setWishing("感谢您参加猜灯谜活动，祝您元宵节快乐！");
 				request.setClientIp("127.0.0.1");
-				request.setActName("猜灯谜抢红包活动");
+				request.setActName(wxConfig.getConfigByCode("redpack.actName").getValue());
 				request.setRemark("活动");
 
 				// 发送红包
-				WxPaySendRedpackResult sendRedpackResult;
-				sendRedpackResult = wxMpService.getPayService().sendRedpack(request, new File(""));
+				WxPaySendRedpackResult sendRedpackResult = new WxPaySendRedpackResult();
+//				sendRedpackResult = wxMpService.getPayService().sendRedpack(request, new File(""));
+				
+				sendRedpackResult.setReturnCode("SUCCESS");
+				sendRedpackResult.setResultCode("SUCCESS");
 
 				if ("SUCCESS".equalsIgnoreCase(sendRedpackResult.getReturnCode())
 						&& "SUCCESS".equalsIgnoreCase(sendRedpackResult.getResultCode())) {
 					payInfoRepository.save(entity);
 				} else {
 					saveErrInfo(entity, sendRedpackResult.getReturnMsg());
+					
 				}
 
 			} else {
 				saveErrInfo(entity, result.getReturnMsg());
 			}
-		} catch (WxErrorException e) {
+		} catch (Exception e) {
 			
 			saveErrInfo(entity, e.getMessage());
 			logger.error("发送红包失败", e);

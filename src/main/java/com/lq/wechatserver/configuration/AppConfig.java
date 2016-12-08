@@ -1,5 +1,9 @@
 package com.lq.wechatserver.configuration;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.ehcache.EhCacheCacheManager;
@@ -17,10 +21,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
+import com.lq.wechatserver.entity.SysConfigEntity;
+
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackages = "com.lq.wechatserver")
-@Import(value = {JpaConfiguration.class, MessagingListnerConfiguration.class, MessagingConfiguration.class})
+//@Import(value = {JpaConfiguration.class, MessagingListnerConfiguration.class, MessagingConfiguration.class})
 @EnableCaching
 @EnableAspectJAutoProxy
 public class AppConfig  extends WebMvcConfigurerAdapter{
@@ -51,6 +57,7 @@ public class AppConfig  extends WebMvcConfigurerAdapter{
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		registry.addResourceHandler("/css/**").addResourceLocations("/css/");
 		registry.addResourceHandler("/js/**").addResourceLocations("/js/");
+		registry.addResourceHandler("/img/**").addResourceLocations("/img/");
 //		registry.addResourceHandler("/WEB-INF/**").addResourceLocations("/WEB-INF/");
 //		registry.addResourceHandler("/app/**").addResourceLocations("/app/");
 	}

@@ -1,10 +1,18 @@
 package com.lq.wechatserver.configuration;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+
+import com.lq.wechatserver.entity.SysConfigEntity;
+import com.lq.wechatserver.repository.SysConfigRepository;
 
 import me.chanjar.weixin.mp.api.WxMpConfigStorage;
 import me.chanjar.weixin.mp.api.WxMpInMemoryConfigStorage;
@@ -15,36 +23,49 @@ import me.chanjar.weixin.mp.api.impl.WxMpServiceImpl;
 @PropertySource(value = "classpath:wx.properties")
 public class WxConfig {
 	
-//	@Value("#{wxProperties.appid}")
-//	private String appid;
-//
-//	@Value("#{wxProperties.appsecret}")
-//	private String appsecret;
-//
-//	@Value("#{wxProperties.token}")
-//	private String token;
-//
-//	@Value("#{wxProperties.aeskey}")
-//	private String aesKey;
-//
-//	@Value("#{wxProperties.partener_id}")
-//	private String partenerId;
-//
-//	@Value("#{wxProperties.partener_key}")
-//	private String partenerKey;
-	
 	@Autowired
 	Environment environment;
+	@Autowired
+	private SysConfigRepository repository;
+	
+	private Map<String, SysConfigEntity> sysDataMap;
+	
+	private Map<String, SysConfigEntity> loadData() {
+		sysDataMap  = new HashMap<String, SysConfigEntity>();
+		
+		List<SysConfigEntity> list = (List<SysConfigEntity>) repository.findAll();
+		
+		for(SysConfigEntity entity : list) {
+			sysDataMap.put(entity.getCode(), entity);
+		}
+		return sysDataMap;
+	}
+	
+	public SysConfigEntity getConfigByCode(String code) {
+		if(StringUtils.isEmpty(code)) {
+			return null;
+		}
+		
+		if(sysDataMap == null) {
+			loadData();
+		}
+		
+		return sysDataMap.get(code);
+	}
 
 	@Bean
 	public WxMpConfigStorage wxMpConfigStorage() {
 		WxMpInMemoryConfigStorage configStorage = new WxMpInMemoryConfigStorage();
-		configStorage.setAppId(environment.getProperty("appid"));
-		configStorage.setSecret(environment.getProperty("appsecret"));
-		configStorage.setToken(environment.getProperty("token"));
-		configStorage.setAesKey(environment.getProperty("aesKey"));
-		configStorage.setPartnerId(environment.getProperty("partenerId"));
-		configStorage.setPartnerKey(environment.getProperty("partenerKey"));
+		
+		loadData();
+		
+		configStorage.setAppId(getConfigByCode("wx.appId").getValue());
+		configStorage.setSecret(getConfigByCode("wx.appsecret").getValue());
+		configStorage.setToken(getConfigByCode("wx.token").getValue());
+		configStorage.setAesKey(getConfigByCode("wx.aesKey").getValue());
+		configStorage.setPartnerId(getConfigByCode("wx.partenerId").getValue());
+//		configStorage.setPartnerKey(getConfigByCode("wx.partenerKey").getValue());
+		
 		return configStorage;
 	}
 

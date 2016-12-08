@@ -30,7 +30,7 @@
 		</div>
 		<div class="weui_btn_area">
 			<a href="javascript:;" class="weui_btn weui_btn_primary"
-				id="btnPrepay" onclick="savePayInfo(getPayInfo())">确定</a>
+				id="btnPrepay" onclick="sendRedpack(getPayInfo())">确定</a>
 		</div>
 	</div>
 
@@ -126,10 +126,10 @@
 			}
 			
 			
-		function savePayInfo(data) {
+		function sendRedpack(data) {
 			 $.ajax({
 	               type: "POST",
-	               url: "<%=basePath%>/payment/savePayInfo",
+	               url: "<%=basePath%>/payment/sendRedpack",
 	               data: data,
 	               contentType : 'application/json',
 	               success: function(res){

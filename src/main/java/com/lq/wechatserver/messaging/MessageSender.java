@@ -15,7 +15,7 @@ import com.lq.wechatserver.entity.PayInfoEntity;
 @Component
 public class MessageSender {
 
-	@Autowired
+//	@Autowired
 	JmsTemplate jmsTemplate;
 
 	public void sendMessage(final PayInfoEntity entity) {
