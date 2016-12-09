@@ -30,7 +30,7 @@
 		</div>
 		<div class="weui_btn_area">
 			<a href="javascript:;" class="weui_btn weui_btn_primary"
-				id="btnPrepay" onclick="sendRedpack(getPayInfo())">确定</a>
+				id="btnPrepay" >确定</a>
 		</div>
 	</div>
 
@@ -41,25 +41,25 @@
 
 	<script type="text/javascript">
 	
-// 		$(function(){
-// 	        //按钮单击时执行
-// 	        $("#btnPrepay").click(function(){
+		$(function(){
+	        //按钮单击时执行
+	        $("#btnPrepay").click(function(){
 	              
-// 	              //Ajax调用处理
-// 	            $.ajax({
-// 	               type: "POST",
-<%-- 	               url: "<%=basePath%>/payment/getJSSDKPayInfo", --%>
-// 	               data: JSON.stringify(getJsonData()),
-// 	               contentType : 'application/json',
-// 	               success: function(data){
-// 	            	   if(data != null) {
-// 	            		   onBridgeReady(data);
-// 	            	   }
-//                    }
-// 	            });
+	              //Ajax调用处理
+	            $.ajax({
+	               type: "POST",
+	               url: "<%=basePath%>/payment/getJSSDKPayInfo",
+	               data: JSON.stringify(getJsonData()),
+	               contentType : 'application/json',
+	               success: function(data){
+	            	   if(data != null) {
+	            		   onBridgeReady(data);
+	            	   }
+                   }
+	            });
 	            
-// 	         });
-// 	    });	
+	         });
+	    });	
 	
 		function getJsonData() {
 			var fee = $("#fee").val();
@@ -83,20 +83,6 @@
 			return json;
 		}
 		
-		function getPayInfo() {
-			
-			var json = {
-					"appId" : "appIdfasda1",
-					"openId" : "sregsfgfdgs1",
-					"createTimestamp" : 253452342,
-					"outTradeNo" : "fdasfad1",
-					"totalFee" : 2300
-			}
-			
-			return JSON.stringify(json);
-			
-		}
-		
 		function onBridgeReady(data){
 			   WeixinJSBridge.invoke(
 			       'getBrandWCPayRequest', {
@@ -109,7 +95,8 @@
 			       },
 			       function(res){
 			           if(res.err_msg == "get_brand_wcpay_request：ok" ) {
-			        	   sendRedpack(data);
+			        	   location.href = "success?fee=" + data.totalFee;
+			        	   sendRedpack(data);  // 发送红包
 			           }     // 使用以上方式判断前端返回,微信团队郑重提示：res.err_msg将在用户支付成功后返回    ok，但并不保证它绝对可靠。 
 			       }
 			   ); 

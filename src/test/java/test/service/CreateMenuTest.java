@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -15,13 +16,14 @@ import me.chanjar.weixin.common.bean.menu.WxMenu;
 import me.chanjar.weixin.common.bean.menu.WxMenuButton;
 import me.chanjar.weixin.common.exception.WxErrorException;
 import me.chanjar.weixin.mp.api.WxMpService;
+import test.configuration.BaseJUnit4Test;
 
 
 @ContextConfiguration(classes = WxConfig.class)
 @Configuration
 @ComponentScan("com.lq.wechatserver")
 @RunWith(SpringJUnit4ClassRunner.class)
-public class CreateMenuTest{
+public class CreateMenuTest extends BaseJUnit4Test{
 	
 	
 	@Autowired
@@ -69,11 +71,16 @@ public class CreateMenuTest{
 		button14.setName("成功页面");
 		button14.setUrl(wxMpService.oauth2buildAuthorizationUrl("http://123.56.233.132/wechatserver/payment/success?code=8", "snsapi_base", ""));
 
-		
+		WxMenuButton button15 = new WxMenuButton();
+		button15.setType(WxConsts.BUTTON_VIEW);
+		button15.setName("成功页面");
+		button15.setUrl(wxMpService.oauth2buildAuthorizationUrl("http://123.56.233.132/wechatserver/payment/redpack", "snsapi_base", ""));
+
 		button1.getSubButtons().add(button11);
 		button1.getSubButtons().add(button12);
 		button1.getSubButtons().add(button13);
 		button1.getSubButtons().add(button14);
+		button1.getSubButtons().add(button15);
 		
 		WxMenuButton button2 = new WxMenuButton();
 		button2.setType(WxConsts.BUTTON_VIEW);

@@ -1,12 +1,11 @@
 package com.lq.wechatserver.service.impl;
 
-import me.chanjar.weixin.common.api.WxConsts;
-import me.chanjar.weixin.common.exception.WxErrorException;
-import me.chanjar.weixin.mp.api.WxMpMessageRouter;
-import me.chanjar.weixin.mp.api.WxMpService;
-import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
-import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
-import me.chanjar.weixin.mp.bean.result.WxMpUser;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
@@ -24,15 +23,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.lq.wechatserver.handler.LogHandler;
-import com.lq.wechatserver.handler.MsgHandler;
 import com.lq.wechatserver.handler.QrCodeCreateHandler;
 import com.lq.wechatserver.handler.SubscribeHandler;
 import com.lq.wechatserver.service.CoreService;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+import me.chanjar.weixin.common.api.WxConsts;
+import me.chanjar.weixin.common.exception.WxErrorException;
+import me.chanjar.weixin.mp.api.WxMpMessageRouter;
+import me.chanjar.weixin.mp.api.WxMpService;
+import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
+import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
+import me.chanjar.weixin.mp.bean.result.WxMpUser;
 
 /**
  * Created by FirenzesEagle on 2016/5/30 0030.
@@ -47,8 +48,6 @@ public class CoreServiceImpl implements CoreService {
     protected LogHandler logHandler;
     @Autowired
     protected SubscribeHandler subscribeHandler;
-    @Autowired
-    protected MsgHandler msgHandler;
     @Autowired
     protected QrCodeCreateHandler qrCodeCreateHandler;
     protected Logger logger = LoggerFactory.getLogger(getClass());
@@ -111,8 +110,6 @@ public class CoreServiceImpl implements CoreService {
         
 //        // 默认,转发消息给客服人员
 //        newRouter.rule().async(false).handler(this.msgHandler).end();
-        
-        newRouter.rule().async(false).msgType(WxConsts.CUSTOM_MSG_TEXT).handler(msgHandler).end();
         
         newRouter.rule().async(false).msgType(WxConsts.XML_MSG_EVENT).event(WxConsts.BUTTON_CLICK).handler(this.qrCodeCreateHandler).end();
         

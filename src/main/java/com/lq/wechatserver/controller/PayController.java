@@ -1,7 +1,7 @@
 package com.lq.wechatserver.controller;
 
 import java.io.File;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -14,12 +14,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.lq.wechatserver.configuration.WxConfig;
 import com.lq.wechatserver.entity.PayInfoEntity;
 import com.lq.wechatserver.entity.PayInfoErrEntity;
-import com.lq.wechatserver.messaging.MessageSender;
 import com.lq.wechatserver.repository.PayInfoErrRepository;
 import com.lq.wechatserver.repository.PayInfoRepository;
 import com.lq.wechatserver.service.CoreService;
@@ -31,7 +31,6 @@ import me.chanjar.weixin.mp.bean.pay.request.WxPaySendRedpackRequest;
 import me.chanjar.weixin.mp.bean.pay.request.WxPayUnifiedOrderRequest;
 import me.chanjar.weixin.mp.bean.pay.result.WxPayOrderQueryResult;
 import me.chanjar.weixin.mp.bean.pay.result.WxPaySendRedpackResult;
-import me.chanjar.weixin.mp.bean.pay.result.WxPayUnifiedOrderResult;
 import me.chanjar.weixin.mp.bean.result.WxMpOAuth2AccessToken;
 
 @Controller
@@ -39,6 +38,8 @@ import me.chanjar.weixin.mp.bean.result.WxMpOAuth2AccessToken;
 public class PayController {
 
 	private static final Logger logger = LoggerFactory.getLogger(PayController.class);
+	
+	private static final String KEY_FILE_PAHT = "key_file";
 
 	@Autowired
 	protected WxMpConfigStorage configStorage;
@@ -49,8 +50,6 @@ public class PayController {
 	@Autowired
 	private PayInfoRepository payInfoRepository;
 	@Autowired
-	private MessageSender messageSender;
-	@Autowired
 	private PayInfoErrRepository payInfoErrRepository;
 	@Autowired
 	private WxConfig wxConfig;
@@ -59,36 +58,10 @@ public class PayController {
 	public String paySuccessed() {
 		return "success";
 	}
-	
-	@RequestMapping(value = "queryReadpack", method = RequestMethod.GET)
-	public String queryReadpack() {
+
+	@RequestMapping(value = "redpack", method = RequestMethod.GET)
+	public String redpack() {
 		return "queryReadpack";
-	}
-
-	@ResponseBody
-	@RequestMapping(value = "prepay", method = RequestMethod.POST)
-	public ResponseEntity<WxPayUnifiedOrderResult> unionOrderPay(@RequestBody WxPayUnifiedOrderRequest request)
-			throws WxErrorException {
-
-		logger.info("prepay processed, request = {}", request.toString());
-		// appId、mchId、nonceStr、sign 在unifiedOrder中自动获取
-
-		WxMpOAuth2AccessToken token = wxMpService.oauth2getAccessToken(request.getAttach()); // 把code放到attach里获得openId
-
-		// WxMpOAuth2AccessToken token = new WxMpOAuth2AccessToken();
-		// token.setOpenId("dddddd");
-
-		request.setDeviceInfo("WEB"); // 终端设备号(门店号或收银设备ID)，注意：PC网页或公众号内支付请传"WEB"
-
-		WxPayUnifiedOrderResult result = new WxPayUnifiedOrderResult();
-
-		request.setOpenid(token.getOpenId());
-		request.setOutTradeNo(System.currentTimeMillis() + ""); // 商户订单号
-		request.setSpbillCreateIp(request.getSpbillCreateIp()); // ip
-
-		result = wxMpService.getPayService().unifiedOrder(request);
-
-		return new ResponseEntity<WxPayUnifiedOrderResult>(result, HttpStatus.OK);
 	}
 
 	/**
@@ -105,34 +78,21 @@ public class PayController {
 
 		logger.info("getJSSDKPayInfo processed , request = {}!", request.toString());
 
-		// WxMpOAuth2AccessToken token =
-		// wxMpService.oauth2getAccessToken(request.getAttach()); //
-		// 把code放到attach里获得openId
-		//
-		// WxPayUnifiedOrderRequest prepayInfo = new WxPayUnifiedOrderRequest();
-		// prepayInfo.setOpenid(token.getOpenId());
-		// prepayInfo.setOutTradeNo(request.getOutTradeNo());
-		// prepayInfo.setTotalFee(Integer.valueOf(request.getTotalFee()));
-		// prepayInfo.setBody(request.getBody());
-		// prepayInfo.setTradeType(request.getTradeType());
-		// prepayInfo.setSpbillCreateIp(request.getSpbillCreateIp());
-		// // TODO(user) 填写通知回调地址
-		// prepayInfo.setNotifyURL("/payment/success?fee="+Integer.valueOf(request.getTotalFee())/100);
+		WxMpOAuth2AccessToken token = wxMpService.oauth2getAccessToken(request.getAttach()); // 把code放到attach里获得openId
 
-		Map<String, String> payInfo = new HashMap<String, String>();
+		WxPayUnifiedOrderRequest prepayInfo = new WxPayUnifiedOrderRequest();
+		prepayInfo.setOpenid(token.getOpenId());
+		prepayInfo.setOutTradeNo(request.getOutTradeNo());
+		prepayInfo.setTotalFee(Integer.valueOf(request.getTotalFee()));
+		prepayInfo.setBody(request.getBody());
+		prepayInfo.setTradeType(request.getTradeType());
+		prepayInfo.setSpbillCreateIp(request.getSpbillCreateIp());
+//		prepayInfo.setNotifyURL("/payment/success?fee=" + Integer.valueOf(request.getTotalFee()) / 100);
+
+		Map<String, String> payInfo = this.wxMpService.getPayService().getPayInfo(prepayInfo);
+
 		payInfo.put("outTradeNo", request.getOutTradeNo());
 		payInfo.put("totalFee", String.valueOf(request.getTotalFee()));
-
-		// Map<String, String> payInfo =
-		// this.wxMpService.getPayService().getPayInfo(prepayInfo);
-
-		payInfo.put("appId", wxMpService.getWxMpConfigStorage().getAppId());
-		payInfo.put("timeStamp", String.valueOf(System.currentTimeMillis() / 1000));
-		payInfo.put("nonceStr", System.currentTimeMillis() + "");
-		payInfo.put("package", "prepay_id=" + "234");
-		payInfo.put("signType", "MD5");
-		payInfo.put("codeUrl", "12314");
-		payInfo.put("paySign", "12314sdfgnh");
 
 		return new ResponseEntity<Map<String, String>>(payInfo, HttpStatus.OK);
 	}
@@ -143,19 +103,9 @@ public class PayController {
 		dosendRedpack(entity);
 	}
 
-	@RequestMapping(value = "savePayInfo", method = RequestMethod.POST)
-	public void savePayInfo(@RequestBody PayInfoEntity entity) {
-
-		messageSender.sendMessage(entity);
-
-		// entity.setCreateTime(new Timestamp(entity.getCreateTimestamp()));
-		// payInfoRepository.save(entity);
-
-	}
-
-	
 	/**
 	 * 发送红包， 如果失败，保存失败信息到 TB_PAY_INFO_ERR
+	 * 
 	 * @param entity
 	 * @return
 	 */
@@ -164,58 +114,71 @@ public class PayController {
 		// 检查是否有支付订单
 		WxPayOrderQueryResult result = new WxPayOrderQueryResult();
 		try {
-//			result = wxMpService.getPayService().queryOrder("", entity.getOutTradeNo());
-			result.setReturnCode("SUCCESS");
-			result.setOutTradeNo(entity.getOutTradeNo());
-			result.setTotalFee(entity.getTotalFee());
+			result = wxMpService.getPayService().queryOrder("", entity.getOutTradeNo());
 
 			if ("SUCCESS".equalsIgnoreCase(result.getReturnCode()) && result.getTotalFee() == entity.getTotalFee()
 					&& result.getOutTradeNo().equals(entity.getOutTradeNo())) {
 
 				WxPaySendRedpackRequest request = new WxPaySendRedpackRequest();
 
-				request.setMchBillno(wxMpService.getWxMpConfigStorage().getPartnerId() + "23423");
-				request.setSendName("vip会员");
+				request.setMchBillno(wxMpService.getWxMpConfigStorage().getPartnerId() + String.valueOf(System.currentTimeMillis()).substring(3));
+				request.setSendName(wxConfig.getConfigByCode("redpack.sendName").getValue());
 				request.setReOpenid(entity.getOpenId());
-				request.setTotalAmount(200);
+				request.setTotalAmount(Integer.valueOf(wxConfig.getConfigByCode("redpack.amount").getValue()));
 				request.setTotalNum(1);
-				request.setWishing("感谢您参加猜灯谜活动，祝您元宵节快乐！");
+				request.setWishing(wxConfig.getConfigByCode("redpack.wishing").getValue());
 				request.setClientIp("127.0.0.1");
 				request.setActName(wxConfig.getConfigByCode("redpack.actName").getValue());
-				request.setRemark("活动");
+				request.setRemark(wxConfig.getConfigByCode("redpack.remark").getValue());
 
 				// 发送红包
-				WxPaySendRedpackResult sendRedpackResult = new WxPaySendRedpackResult();
-//				sendRedpackResult = wxMpService.getPayService().sendRedpack(request, new File(""));
-				
-				sendRedpackResult.setReturnCode("SUCCESS");
-				sendRedpackResult.setResultCode("SUCCESS");
+				WxPaySendRedpackResult sendRedpackResult  = wxMpService.getPayService().sendRedpack(request, new File(wxConfig.getConfigByCode(KEY_FILE_PAHT).getValue()));
 
 				if ("SUCCESS".equalsIgnoreCase(sendRedpackResult.getReturnCode())
 						&& "SUCCESS".equalsIgnoreCase(sendRedpackResult.getResultCode())) {
 					payInfoRepository.save(entity);
 				} else {
 					saveErrInfo(entity, sendRedpackResult.getReturnMsg());
-					
+
 				}
 
 			} else {
 				saveErrInfo(entity, result.getReturnMsg());
 			}
 		} catch (Exception e) {
-			
+
 			saveErrInfo(entity, e.getMessage());
 			logger.error("发送红包失败", e);
 		}
 		return null;
 	}
-	
+
 	private void saveErrInfo(PayInfoEntity entity, String msg) {
 		PayInfoErrEntity errEntity = new PayInfoErrEntity();
 		BeanUtils.copyProperties(entity, errEntity);
 		errEntity.setErrMsg(msg);
 		errEntity.setPayInfoId(0);
 		payInfoErrRepository.save(errEntity);
+	}
+
+	
+	/**
+	 * 查询我的红包
+	 * 
+	 * @param code
+	 * @return
+	 * @throws WxErrorException
+	 */
+	@RequestMapping(value = "queryRedpack", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<List<PayInfoEntity>> queryRedpack(@RequestParam String code) throws WxErrorException {
+
+		WxMpOAuth2AccessToken token = wxMpService.oauth2getAccessToken(code); // 把code放到attach里获得openId
+
+		List<PayInfoEntity> infos = payInfoRepository.getPayInfoEntityByOpenId(token.getOpenId());
+
+		return new ResponseEntity<List<PayInfoEntity>>(infos, HttpStatus.OK);
+
 	}
 
 }
